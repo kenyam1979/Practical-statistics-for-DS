@@ -8,7 +8,7 @@ loan3000 <- read_csv('https://raw.githubusercontent.com/gedeck/practical-statist
 
 ## LDA (Liner Discriminant Analysis)
 loan_lda <- lda(outcome ~ borrower_score + payment_inc_ratio, data=loan3000)
-loan_lda$scaling
+loan_lda$scaling # weight for w*x > c
 
 
 ## Prediction

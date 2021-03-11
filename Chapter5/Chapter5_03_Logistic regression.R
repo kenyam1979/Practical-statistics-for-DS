@@ -3,6 +3,8 @@ library(tidyverse)
 
 ## Data preparation
 loan_data <- read_csv('https://github.com/gedeck/practical-statistics-for-data-scientists/raw/master/data/loan_data.csv.gz')
+loan_data$outcome <- factor(loan_data$outcome, levels=c('paid off', 'default')) # levels can control which could be 0 and 1
+
 
 
 ## Logistic regression
@@ -12,7 +14,7 @@ summary(logistic_model)
 
 
 ## Calculation of probability (predict extracts Y as log(odds), not probability)
-pred <- predict(logistics_model)
+pred <- predict(logistic_model)
 prob <- 1/(1+exp(-pred))
 prob
 
@@ -28,28 +30,29 @@ summary(logistic_gam)
 ## Model evaluation
 pred <- predict(logistic_gam)
 pred_y <- as.numeric(pred > 0)
-y <- as.numeric(loan_data$outcome != 'default')
+y <- as.numeric(loan_data$outcome == 'default')
 
 ### Confusion matrix
 tab <- table(y, pred_y)
+tab
 
 ### Precision
-tab[1, 1]/sum(tab[ ,1])
+tab[2, 2]/sum(tab[ ,2])
 ### Sensitiviy
-tab[1, 1]/sum(tab[1, ])
-### Specificity
 tab[2, 2]/sum(tab[2, ])
+### Specificity
+tab[1, 1]/sum(tab[2, ])
 ### Accuracy
 sum(diag(tab))/sum(tab)
 
 ### ROC
 library(ROCR)
 prob <- 1/(1+exp(-pred))
-pf <- performance(prediction(as.numeric(prob), as.numeric(y)), 'tpr', 'fpr')
+pf <- performance(prediction(as.numeric(prob), y), 'tpr', 'fpr')
 plot(pf)
 
 ### AUC
-tmp <- performance(prediction(as.numeric(prob), as.numeric(y)), 'auc')
+tmp <- performance(prediction(as.numeric(prob), y), 'auc')
 tmp@y.values    
 
 

@@ -95,53 +95,5 @@ lm(AdjSalePrice ~ SqFtToLiving * ZipGroup + SqFtLot + Bathrooms +
    data=house)
 
 
-## Outlier
-house_98105 <- house[house$ZipCode == 98105,]
-lm_98105 <- lm(AdjSalePrice ~ SqFtToLiving + SqFtLot + Bathrooms +
-                 Bedrooms + BldgGrade,
-               data=house_98105)
-sresid <- rstandard(lm_98105)
-hist(sresid)
-
-### Measuring leverage (Hat value and Cook's distance)
-sresid <- rstandard(lm_98105)
-cooks_D <- cooks.distance(lm_98105) 
-hat_values <- hatvalues(lm_98105)
-
-bind_cols(cooks_D=cooks_D, sresid=sresid) %>% ggplot(aes(x=cooks_D, y=sresid)) + geom_point()
-bind_cols(hat_values=hat_values, sresid=sresid) %>% ggplot(aes(x=hat_values, y=sresid)) + geom_point()
-
-#### Removing outlier
-house_98105_2 <- house_98105 %>% filter(cooks_D <= 0.08)
-lm_98105_2 <- lm(AdjSalePrice ~ SqFtToLiving + SqFtLot + Bathrooms +
-                 Bedrooms + BldgGrade,
-               data=house_98105_2)
-
-#### Comparison before/after
-bind_cols(lm_98105$coefficients, lm_98105_2$coefficients)
-
-
-## Residual analysis
-
-### Heteroskedasticity
-bind_cols(resid=residuals(lm_98105), pred=predict(lm_98105)) %>%
-  ggplot(aes(x=pred, y=abs(resid))) + geom_point() + geom_smooth()
-
-### Non-normal residual
-hist(residuals(lm_98105))
-qqnorm(residuals(lm_98105)) + qqline(residuals(lm_98105)) ## qq plot
-shapiro.test(residuals(lm_98105)) # Shapiro-Wilk test
-
-### Partial residual
-
-terms <- predict(lm_98105, type='terms')
-partial_resid <- residuals(lm_98105) + terms
-
-bind_cols(SqFtToLiving=house_98105$SqFtToLiving, terms=terms[, 'SqFtToLiving'], partial_resid=partial_resid[, 'SqFtToLiving']) %>%
-  ggplot(aes(x=SqFtToLiving, y=partial_resid)) + 
-  geom_point() + 
-  geom_smooth(linetype=2) +
-  geom_line(aes(x=SqFtToLiving, y=terms))
-
 
 rm(list=ls(all.names=TRUE))
